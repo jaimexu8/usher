@@ -1,19 +1,19 @@
-# Usher — Clash of Clans Discord War Bot
+# Usher: Clash of Clans Discord War Bot
 
 A self-hostable Discord bot that monitors your Clash of Clans clan's wars and sends attack reminders, war result summaries, and capital raid summaries to your Discord server.
 
 ## Features
 
-- **War attack reminders** — pings members who still have attacks at configurable time thresholds (e.g. 12h, 3h, 1h before war end)
-- **War result summaries** — posts win/loss/tie summary with stars, destruction, and missed attacks
-- **Capital raid summaries** — posts total gold looted and participant breakdown after raid weekend
-- **Account linking** — link Discord users to CoC player tags for `@mention` reminders
-- **Prefix commands** — all config and user interaction via Discord text commands
+- **War attack reminders**: pings members who still have attacks at configurable time thresholds (e.g. 12h, 3h, 1h before war end)
+- **War result summaries**: posts win/loss/tie summary with stars, destruction, and missed attacks
+- **Capital raid summaries**: posts total gold looted and participant breakdown after raid weekend
+- **Account linking**: link Discord users to CoC player tags for `@mention` reminders
+- **Prefix commands**: all config and user interaction via Discord text commands
 
 ## Prerequisites
 
-- A **Discord bot token** — see [Discord Developer Portal](https://discord.com/developers/applications)
-- A **Clash of Clans API key** — see [CoC Developer Portal](https://developer.clashofclans.com)
+- A **Discord bot token**: see [Discord Developer Portal](https://discord.com/developers/applications)
+- A **Clash of Clans API key**: see [CoC Developer Portal](https://developer.clashofclans.com)
 - **Docker** installed on your server
 - Your server's **public IP** whitelisted in the CoC API key settings
 
@@ -24,7 +24,7 @@ A self-hostable Discord bot that monitors your Clash of Clans clan's wars and se
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/jaimexu8/usher
 cd usher
 ```
 
@@ -60,25 +60,25 @@ In your Discord server (you must have **Manage Server** permission):
 
 ### Admin commands (require Manage Server)
 
-| Command | Description |
-|---|---|
-| `!setclan #TAG` | Set the clan to monitor |
-| `!setwarchannel #channel` | Set channel for war attack reminders |
-| `!setresultschannel #channel` | Set channel for war result summaries |
+| Command                       | Description                            |
+| ----------------------------- | -------------------------------------- |
+| `!setclan #TAG`               | Set the clan to monitor                |
+| `!setwarchannel #channel`     | Set channel for war attack reminders   |
+| `!setresultschannel #channel` | Set channel for war result summaries   |
 | `!setcapitalchannel #channel` | Set channel for capital raid summaries |
-| `!setreminders 12h 3h 1h` | Set reminder time thresholds |
-| `!status` | Show current config and war state |
-| `!testreminder` | Preview a reminder message (no pings) |
+| `!setreminders 12h 3h 1h`     | Set reminder time thresholds           |
+| `!status`                     | Show current config and war state      |
+| `!testreminder`               | Preview a reminder message (no pings)  |
 
 ### User commands
 
-| Command | Description |
-|---|---|
-| `!war` | Show current war status and remaining attacks |
-| `!link #TAG [nickname]` | Link your Discord to a CoC player tag |
-| `!unlink #TAG` | Remove a linked tag |
-| `!unlinkall` | Remove all your linked tags |
-| `!links` | List your linked tags |
+| Command                 | Description                                   |
+| ----------------------- | --------------------------------------------- |
+| `!war`                  | Show current war status and remaining attacks |
+| `!link #TAG [nickname]` | Link your Discord to a CoC player tag         |
+| `!unlink #TAG`          | Remove a linked tag                           |
+| `!unlinkall`            | Remove all your linked tags                   |
+| `!links`                | List your linked tags                         |
 
 ---
 
@@ -129,23 +129,67 @@ sudo systemctl enable --now coc-bot.service
 ```
 
 Check status:
+
 ```bash
 sudo systemctl status coc-bot.service
-docker logs coc-bot.service
+sudo journalctl -u coc-bot.service -n 50
+```
+
+---
+
+## Development
+
+Develop and test locally, then deploy updates to EC2 by pulling and rebuilding on the instance.
+
+### Local
+
+Run the bot locally for testing.
+
+```bash
+docker compose up --build
+```
+
+### EC2
+
+1. SSH into the instance and go to the repo directory (where the Dockerfile lives):
+
+```bash
+ ssh -i your-key.pem ec2-user@<ELASTIC_IP>
+ cd ~/coc-bot
+```
+
+2. Run the deploy script (pulls latest `main`, rebuilds image, restarts the service):
+
+```bash
+ chmod +x deploy/update.sh   # only needed once
+ ./deploy/update.sh
+```
+
+The script will:
+
+- `git pull origin main`
+- `sudo docker build -t coc-bot:latest .`
+- `sudo systemctl restart coc-bot.service`
+- Print service status
+
+3. Watch logs if needed:
+
+```bash
+ sudo journalctl -u coc-bot.service -f
 ```
 
 ---
 
 ## Environment Variables
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `DISCORD_TOKEN` | Yes | — | Discord bot token |
-| `COC_API_TOKEN` | Yes | — | Clash of Clans API key |
-| `COMMAND_PREFIX` | No | `!` | Bot command prefix |
-| `LOG_LEVEL` | No | `INFO` | Logging level (DEBUG/INFO/WARNING/ERROR) |
-| `SQLITE_PATH` | No | `/app/data/bot.db` | Path to SQLite database inside container |
-| `POLL_INTERVAL` | No | `120` | CoC API poll interval in seconds |
+| Variable         | Required | Default            | Description                              |
+| ---------------- | -------- | ------------------ | ---------------------------------------- |
+| `DISCORD_TOKEN`  | Yes      | —                  | Discord bot token                        |
+| `COC_API_TOKEN`  | Yes      | —                  | Clash of Clans API key                   |
+| `COMMAND_PREFIX` | No       | `!`                | Bot command prefix                       |
+| `LOG_LEVEL`      | No       | `INFO`             | Logging level (DEBUG/INFO/WARNING/ERROR) |
+| `SQLITE_PATH`    | No       | `/app/data/bot.db` | Path to SQLite database inside container |
+| `POLL_INTERVAL`  | No       | `120`              | CoC API poll interval in seconds         |
 
 ---
 
@@ -153,11 +197,11 @@ docker logs coc-bot.service
 
 The bot uses a SQLite database with the following tables:
 
-- **`guild_config`** — Per-server configuration (clan tag, channels, reminder thresholds)
-- **`user_links`** — Discord user ↔ CoC player tag mappings
-- **`wars`** — War records with state and summary status
-- **`reminders_sent`** — Deduplication log for sent reminders
-- **`capital_seasons_posted`** — Deduplication log for capital raid summaries
+- `**guild_config`\*\* — Per-server configuration (clan tag, channels, reminder thresholds)
+- `**user_links`\*\* — Discord user ↔ CoC player tag mappings
+- `**wars`\*\* — War records with state and summary status
+- `**reminders_sent**` — Deduplication log for sent reminders
+- `**capital_seasons_posted**` — Deduplication log for capital raid summaries
 
 ---
 
