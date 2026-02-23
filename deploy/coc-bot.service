@@ -1,0 +1,26 @@
+[Unit]
+Description=Clash of Clans Discord bot
+After=docker.service
+Requires=docker.service
+
+[Service]
+Restart=always
+RestartSec=10
+
+# Stop and remove any existing container with this name before starting
+ExecStartPre=-/usr/bin/docker stop %n
+ExecStartPre=-/usr/bin/docker rm %n
+
+# Run the bot container
+# Adjust --env-file path and image tag as needed
+ExecStart=/usr/bin/docker run \
+    --rm \
+    --name %n \
+    --env-file /home/ec2-user/coc-bot/coc-bot.env \
+    -v coc-bot-data:/app/data \
+    coc-bot:latest
+
+ExecStop=/usr/bin/docker stop %n
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  coc-bot:
+    build: .
+    image: coc-bot:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - coc-bot-data:/app/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  coc-bot-data:
