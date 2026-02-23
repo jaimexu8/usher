@@ -11,6 +11,19 @@ from ..database import GuildConfig
 
 log = logging.getLogger(__name__)
 
+HANDLER_ROLE_NAME = "usher handler"
+
+
+def is_usher_manager():
+    """Allow server admins (manage_guild) OR members with the 'Usher Handler' role."""
+    async def predicate(ctx: commands.Context) -> bool:
+        if ctx.author.guild_permissions.manage_guild:
+            return True
+        if any(r.name.lower() == HANDLER_ROLE_NAME for r in ctx.author.roles):
+            return True
+        raise commands.MissingPermissions(["manage_guild"])
+    return commands.check(predicate)
+
 
 def parse_duration_minutes(s: str) -> int:
     """Parse '12h', '30m', or plain integer string into minutes."""
@@ -43,7 +56,7 @@ class AdminCog(commands.Cog, name="Admin"):
     # ------------------------------------------------------------------
 
     @commands.command(name="setclan")
-    @commands.has_permissions(manage_guild=True)
+    @is_usher_manager()
     async def setclan(self, ctx, clan_tag: str):
         """Set the clan tag to monitor (admin only)."""
         clan_tag = normalize_tag(clan_tag)
@@ -62,28 +75,28 @@ class AdminCog(commands.Cog, name="Admin"):
         await ctx.send(f"Clan set to `{clan_tag}`.")
 
     @commands.command(name="setwarchannel")
-    @commands.has_permissions(manage_guild=True)
+    @is_usher_manager()
     async def setwarchannel(self, ctx, channel: discord.TextChannel):
         """Set the channel for war attack reminders (admin only)."""
         await self.bot.db.upsert_guild_config(ctx.guild.id, war_channel_id=str(channel.id))
         await ctx.send(f"War reminder channel set to {channel.mention}.")
 
     @commands.command(name="setresultschannel")
-    @commands.has_permissions(manage_guild=True)
+    @is_usher_manager()
     async def setresultschannel(self, ctx, channel: discord.TextChannel):
         """Set the channel for war result summaries (admin only)."""
         await self.bot.db.upsert_guild_config(ctx.guild.id, results_channel_id=str(channel.id))
         await ctx.send(f"War results channel set to {channel.mention}.")
 
     @commands.command(name="setcapitalchannel")
-    @commands.has_permissions(manage_guild=True)
+    @is_usher_manager()
     async def setcapitalchannel(self, ctx, channel: discord.TextChannel):
         """Set the channel for clan capital raid summaries (admin only)."""
         await self.bot.db.upsert_guild_config(ctx.guild.id, capital_channel_id=str(channel.id))
         await ctx.send(f"Capital raid channel set to {channel.mention}.")
 
     @commands.command(name="setreminders")
-    @commands.has_permissions(manage_guild=True)
+    @is_usher_manager()
     async def setreminders(self, ctx, *thresholds: str):
         """Set reminder thresholds (e.g. !setreminders 12h 3h 1h) (admin only)."""
         if not thresholds:
@@ -101,7 +114,7 @@ class AdminCog(commands.Cog, name="Admin"):
         await ctx.send(f"Reminder thresholds set to: {human}.")
 
     @commands.command(name="status")
-    @commands.has_permissions(manage_guild=True)
+    @is_usher_manager()
     async def status(self, ctx):
         """Show bot config and current war state (admin only)."""
         cfg = await self.bot.db.get_guild_config(ctx.guild.id)
@@ -154,7 +167,7 @@ class AdminCog(commands.Cog, name="Admin"):
         await ctx.send("\n".join(lines))
 
     @commands.command(name="testreminder")
-    @commands.has_permissions(manage_guild=True)
+    @is_usher_manager()
     async def testreminder(self, ctx):
         """Preview what a reminder message would look like (no pings sent) (admin only)."""
         cfg = await self._require_config(ctx)
