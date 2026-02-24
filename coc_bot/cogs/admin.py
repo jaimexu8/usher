@@ -6,7 +6,7 @@ from typing import Optional
 import discord
 from discord.ext import commands
 
-from ..coc_client import normalize_tag, CoCApiError
+from ..coc_client import normalize_tag, CoCApiError, is_valid_clan_tag_format
 from ..database import GuildConfig
 
 log = logging.getLogger(__name__)
@@ -60,19 +60,30 @@ class AdminCog(commands.Cog, name="Admin"):
     async def setclan(self, ctx, clan_tag: str):
         """Set the clan tag to monitor (admin only)."""
         clan_tag = normalize_tag(clan_tag)
+
+        if not is_valid_clan_tag_format(clan_tag):
+            await ctx.send(
+                f"Invalid clan tag format. CoC clan tags are 5–9 characters after # "
+                f"(only letters/numbers like 0,2,8,9,P,Y,L,Q,G,R,J,C,U,V). Example: `#2PP`"
+            )
+            return
+
         await ctx.send(f"Validating clan tag `{clan_tag}` with CoC API...")
         try:
-            war_data = await self.bot.coc.get_current_war(clan_tag)
+            clan_data = await self.bot.coc.get_clan(clan_tag)
         except CoCApiError as e:
             if e.status == 0:
                 await ctx.send(f"Network error reaching CoC API: {e}")
                 return
-            # 403 means private war log — the clan exists but log is private; that's OK
-            war_data = None
+            await ctx.send(f"CoC API error: {e}")
+            return
 
-        # If we get here without error, clan exists (or war log is private)
+        if clan_data is None:
+            await ctx.send(f"No clan found for `{clan_tag}`. Check the tag and try again.")
+            return
+
         await self.bot.db.upsert_guild_config(ctx.guild.id, clan_tag=clan_tag)
-        await ctx.send(f"Clan set to `{clan_tag}`.")
+        await ctx.send(f"Clan set to `{clan_tag}` ({clan_data.get('name', clan_tag)}).")
 
     @commands.command(name="setwarchannel")
     @is_usher_manager()

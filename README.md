@@ -72,13 +72,19 @@ In your Discord server (you must have **Manage Server** permission):
 
 ### User commands
 
-| Command                 | Description                                   |
-| ----------------------- | --------------------------------------------- |
-| `!war`                  | Show current war status and remaining attacks |
-| `!link #TAG [nickname]` | Link your Discord to a CoC player tag         |
-| `!unlink #TAG`          | Remove a linked tag                           |
-| `!unlinkall`            | Remove all your linked tags                   |
-| `!links`                | List your linked tags                         |
+| Command | Description |
+| ------- | ----------- |
+| `!war` | Show current war status and remaining attacks |
+| `!link #TAG [nickname]` | Link your Discord to a CoC player tag |
+| `!link @user #TAG [nickname]` | *(Admin/Usher Handler)* Link another user to a CoC tag (use @mention or Discord user ID) |
+| `!unlink #TAG` | Remove a linked tag from your account |
+| `!unlink @user #TAG` | *(Admin/Usher Handler)* Remove a linked tag from another user's account |
+| `!unlinkall` | Remove all your linked tags |
+| `!unlinkall @user` | *(Admin/Usher Handler)* Remove all linked tags for another user |
+| `!links` | List your linked CoC accounts |
+| `!links @user` | *(Admin/Usher Handler)* List another user's linked CoC accounts |
+
+**Linking as another user:** Server admins (Manage Server) and members with the **Usher Handler** role can run `!link`, `!unlink`, `!unlinkall`, and `!links` for someone else by passing that user as the first argument—either **@mention** (e.g. `@username`) or their **Discord user ID** (e.g. `123456789012345678`).
 
 ---
 
