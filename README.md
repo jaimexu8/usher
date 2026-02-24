@@ -164,16 +164,17 @@ docker compose up --build
  cd ~/coc-bot
 ```
 
-2. Run the deploy script (pulls latest `main`, rebuilds image, restarts the service):
+2. Run the deploy script (pulls latest code, rebuilds image, restarts the service):
 
 ```bash
  chmod +x deploy/update.sh   # only needed once
- ./deploy/update.sh
+ ./deploy/update.sh          # deploy from main
+ ./deploy/update.sh feature/my-branch   # deploy from a specific branch
 ```
 
 The script will:
 
-- `git pull origin main`
+- `git fetch origin` then `git checkout <branch>` and `git pull origin <branch>` (default branch: `main`)
 - `sudo docker build -t coc-bot:latest .`
 - `sudo systemctl restart coc-bot.service`
 - Print service status
@@ -203,11 +204,11 @@ The script will:
 
 The bot uses a SQLite database with the following tables:
 
-- `**guild_config`\*\* — Per-server configuration (clan tag, channels, reminder thresholds)
-- `**user_links`\*\* — Discord user ↔ CoC player tag mappings
-- `**wars`\*\* — War records with state and summary status
-- `**reminders_sent**` — Deduplication log for sent reminders
-- `**capital_seasons_posted**` — Deduplication log for capital raid summaries
+- **`guild_config`** — Per-server configuration (clan tag, channels, reminder thresholds)
+- **`user_links`** — Discord user ↔ CoC player tag mappings
+- **`wars`** — War records with state and summary status
+- **`reminders_sent`** — Deduplication log for sent reminders
+- **`capital_seasons_posted`** — Deduplication log for capital raid summaries
 
 ---
 

@@ -1,18 +1,22 @@
 #!/usr/bin/env bash
 # Deploy/update the coc-bot on EC2: pull latest code, rebuild image, restart service.
-# Run from the repo root or from deploy/:
-#   ./deploy/update.sh
-#   or from deploy/: ./update.sh
+# Usage:
+#   ./deploy/update.sh              # deploy from main
+#   ./deploy/update.sh <branch>     # deploy from the given branch (e.g. feature/xyz)
 
 set -e
 
+BRANCH="${1:-main}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 cd "$REPO_ROOT"
 
-echo "==> Pulling latest code..."
-git pull origin main
+echo "==> Deploying from branch: $BRANCH"
+echo "==> Fetching and pulling..."
+git fetch origin
+git checkout "$BRANCH"
+git pull origin "$BRANCH"
 
 echo "==> Building Docker image coc-bot:latest..."
 sudo docker build -t coc-bot:latest .
