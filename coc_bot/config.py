@@ -10,6 +10,7 @@ class Config:
     log_level: str
     sqlite_path: str
     poll_interval: int  # seconds
+    status_message: str | None
 
 
 def load_config() -> Config:
@@ -22,6 +23,7 @@ def load_config() -> Config:
         raise ValueError("COC_API_TOKEN environment variable is required")
 
     poll_interval = int(os.environ.get("POLL_INTERVAL", "120"))
+    status_message = os.environ.get("BOT_STATUS", "").strip() or None
 
     return Config(
         discord_token=discord_token,
@@ -30,4 +32,5 @@ def load_config() -> Config:
         log_level=os.environ.get("LOG_LEVEL", "INFO"),
         sqlite_path=os.environ.get("SQLITE_PATH", "/app/data/bot.db"),
         poll_interval=poll_interval,
+        status_message=status_message,
     )

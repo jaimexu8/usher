@@ -51,6 +51,10 @@ class UsherBot(commands.Bot):
     async def on_ready(self) -> None:
         log.info("Logged in as %s (id=%s)", self.user, self.user.id)
         log.info("Prefix: %s", self.config.command_prefix)
+        if self.config.status_message:
+            await self.change_presence(
+                activity=discord.Game(name=self.config.status_message)
+            )
 
     async def on_command_error(self, ctx: commands.Context, error) -> None:
         if isinstance(error, commands.MissingPermissions):
